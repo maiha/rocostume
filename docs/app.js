@@ -1,7 +1,7 @@
 // app.js
 let allData = [];
 let filteredData = [];
-let currentCategory = 1;
+let currentCategory = 0;
 
 async function loadData() {
   const res = await fetch('data.json');
@@ -78,7 +78,7 @@ function renderResults() {
 // 反映
 function updateUrl() {
   const keyword = encodeURIComponent(document.getElementById('search').value.trim());
-  const cat = currentCategory === 'all' ? 'all' : currentCategory;
+  const cat = currentCategory === 0 ? 0 : currentCategory;
   history.replaceState(null, '', `?c=${cat}&q=${keyword}`);
 }
 
@@ -86,7 +86,7 @@ function updateUrl() {
 function loadFromUrl() {
   const params = new URLSearchParams(location.search);
   const cat = params.get('c');
-  currentCategory = (cat === 'all' || cat === null) ? 'all' : Number(cat) || 1;
+  currentCategory = (cat === 0 || cat === null) ? 0 : Number(cat) || 1;
   const q = params.get('q');
   if (q) document.getElementById('search').value = decodeURIComponent(q);
 }
@@ -125,6 +125,13 @@ document.getElementById('results').addEventListener('mouseout', e => {
   const img = e.target.closest('img');
   if (img && img.dataset.name) {
     hoverTitle.style.display = 'none';
+  }
+});
+
+document.getElementById('results').addEventListener('click', e => {
+  const img = e.target.closest('img');
+  if (img && img.alt) {
+    navigator.clipboard.writeText(img.alt);
   }
 });
 
