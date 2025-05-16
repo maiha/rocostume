@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RO衣装検索</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="header">
+    <div id="header-left">
+      <h1>RO衣装検索</h1>
+      <input type="search" id="search" placeholder="Search..." />
+    </div>
+    <div id="view-controls">
+      <label><input type="radio" name="view" value="large" checked> 大きい画像</label>
+      <label><input type="radio" name="view" value="small"> 小さい画像</label>
+      <label><input type="checkbox" id="showName"> 名前表示</label>
+    </div>
+  </header>
+  <div id="container">
+    <aside id="sidebar">
+      <ul>
+        <li data-category="all">全て</li>
+        <li data-category="category1" class="active">上段</li>
+        <li data-category="category2">中段</li>
+        <li data-category="category3">肩</li>
+      </ul>
+    </aside>
+    <main id="main">
+      <div id="hover-title">xxx</div>
+      <div id="count"></div>
+      <div id="results"></div>
+    </main>
+  </div>
+  <footer>
+    <p>@2025 RO衣装検索<br>
+      「ラグナロクオンライン」に関連する全ての表現物の権利は以下に帰属します。<br>
+      ©Gravity Co., Ltd. & LeeMyoungJin(studio DTDS) All rights reserved.<br>
+      ©GungHo Online Entertainment, Inc. All Rights Reserved.
+    </p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
