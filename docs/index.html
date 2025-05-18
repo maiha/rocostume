@@ -4,12 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RO衣装検索</title>
-  <link rel="stylesheet" href="styles.css?1747436580" />
+  <link rel="stylesheet" href="styles.css?1747547065" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
   <header id="header">
     <div id="header-left">
-      <h1>RO衣装検索</h1>
+      <h1 class="logo"><a href="/"><img src="favicon.ico"> RO衣装検索</a></h1>
       <input type="search" id="search" placeholder="Search..." />
     </div>
     <div id="view-controls">
@@ -20,15 +21,20 @@
   </header>
   <div id="container">
     <aside id="sidebar">
+      <h3>部位で絞り込み</h3>
       <ul>
-        <li data-category="all">全て</li>
-        <li data-category="category1" class="active">上段</li>
-        <li data-category="category2">中段</li>
-        <li data-category="category3">肩</li>
+        <li data-category= class="active">全て</li>
+        <li data-category=1>上段</li>
+        <li data-category=2>中段</li>
+        <li data-category=3>肩</li>
+      </ul>
+      <hr />
+      <h3>色で絞り込み</h3>
+      <ul id="color-filter">
       </ul>
     </aside>
     <main id="main">
-      <div id="hover-title">xxx</div>
+      <div id="item-info"></div>
       <div id="count"></div>
       <div id="results"></div>
     </main>
@@ -40,6 +46,6 @@
       ©GungHo Online Entertainment, Inc. All Rights Reserved.
     </p>
   </footer>
-  <script src="app.js?1747436580"></script>
+  <script src="app.js?1747536023"></script>
 </body>
 </html>
