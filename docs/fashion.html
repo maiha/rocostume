@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ファッションの館</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'ヒラギノ角ゴ ProN', 'メイリオ', sans-serif;
+      color: #222;
+      background: linear-gradient(135deg, #f6ede8 0%, #e5d6ce 70%, #e8d7b8 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .controls-area {
+      position: absolute;
+      top: 18px;
+      right: 28px;
+      z-index: 200;
+    }
+    #exit-btn {
+      background: #888;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 4px 12px;
+      font-size: 1em;
+      cursor: pointer;
+      box-shadow: 0 1px 5px #1113;
+      transition: background 0.17s;
+    }
+    #exit-btn.hover, #exit-btn:hover {
+      background: #f55;
+    }
+    .guild-ui-top {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding-right: 160px;
+    }
+    .npc-img-area {
+      order: 1;
+      width: 180px;
+      min-width: 120px;
+      text-align: center;
+      margin-left: 36px;
+    }
+    .npc-img, #user-img-area img#user-img {
+      width: 140px;
+      height: 180px;
+      object-fit: contain;
+      border-radius: 18px;
+      box-shadow: 0 3px 16px #0002;
+      background: #fff4;
+      margin-top: 12px;
+    }
+    #user-img-area.visible, img#user-img.visible {
+      display: flex;
+    }
+
+    .dialog-window {
+      flex: 1;
+      order: 2;
+      max-width: 60%;
+      background: #fbfaf7;
+      color: #333;
+      border: 1.7px solid #bfc5cc;
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 340px;
+      max-width: 450px;
+      font-size: 0.98em;
+      box-shadow: 1px 2px 6px #c3d4e055;
+      margin-top: 16px;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .dialog-window.visible {
+      display: flex;
+    }
+
+    .visible { display: block; }
+    .hidden { display: none; }
+    .npc-name {
+      font-weight: bold;
+      font-size: 1em;
+      color: #4568a2;
+      letter-spacing: 0.07em;
+    }
+    .speech-box {
+      background: #f6f5f3;
+      margin-bottom: 7px;
+      padding: 6px 7px;
+      font-size: 1em;
+      line-height: 1.8;
+    }
+    .next-btn {
+      align-self: flex-end;
+      font-size: 0.92em;
+      background: #fff;
+      color: #444;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin: 0;
+    }
+.next-btn.visible {
+  display: inline-block;
+  background: #e9f4fb;
+  color: #256388;
+  border: 2px solid #b7d1e6;
+  box-shadow: 0 2px 10px #b7d1e622;
+  font-weight: bold;
+}
+
+    .next-btn:active {
+      background: #eaecec;
+    }
+    #user-img-area {
+      position: fixed;
+      right: 10px;
+      top: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+    #user-dialog-area {
+      position: fixed;
+      right: 160px;
+      top: 130px;
+      max-width: 35%;
+      background:  white;
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 1px 2px 6px #c3d4e055;
+      font-size: 0.98em;
+      color: #333;
+      z-index: 900;
+    }
+    #user-dialog-area .speech-box {
+      background-color: white; /* 透過でないエモーションを使うため */
+    }
+
+    .poem {
+      color: purple;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .cutin-image {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 50vw;
+      max-width: 400px;
+      height: auto;
+      max-height: 50vh;
+      object-fit: contain;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1;
+      z-index: 400;
+      pointer-events: none;
+      animation: cutin-zoom-fadeout 2s forwards;
+    }
+    @keyframes cutin-zoom-fadeout {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+      }
+    }
+    .upload-fullscreen-area {
+      position: fixed;
+      top: 120px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      justify-content: center;
+      align-items: center;
+      background: none;
+      z-index: 1;
+      width: 100vw;
+      height: calc(100vh - 120px);
+      display: none;
+    }
+    .upload-fullscreen-area.visible {
+      display: flex;
+    }
+    .upload-box {
+      border: 3px dashed #bfc5cc;
+      border-radius: 18px;
+      background: #fffefa;
+      font-size: 1.25em;
+      color: #4568a2;
+      text-align: center;
+      box-shadow: 0 6px 36px #cfc2c145;
+      transition: background 0.2s, border 0.2s;
+      min-width: 60vw;
+      min-height: 40vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+    .upload-box.dragover {
+      background: #f2f9ff;
+      border-color: #45a0f8;
+      color: #008;
+    }
+    .file-input {
+      margin-top: 18px;
+      color: #444;
+      font-size: 1em;
+    }
+    .preview-img {
+      max-width: 140px;
+      max-height: 140px;
+      border-radius: 10px;
+      box-shadow: 0 1px 8px #ccc;
+      margin: 12px auto 4px;
+      display: block;
+    }
+    .palette-row {
+      display: flex;
+      gap: 12px;
+      margin: 12px 0 6px 0;
+      justify-content: flex-start;
+    }
+    #color-wheel {
+      display: block;
+      margin: 12px auto 0;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 7px #bbb2;
+    }
+    .palette-color {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 2px solid #bfc5cc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff2;
+      transition: border 0.15s;
+      position: relative;
+    }
+    .palette-color.selected {
+      border: 2.5px solid #4568a2;
+      box-shadow: 0 0 7px #4568a250;
+    }
+    .color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+      box-shadow: 0 1px 5px #1112;
+    }
+    .item-list-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      margin-top: 24px;
+    }
+    .item-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 120px;
+    }
+    .big-item-icon {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px #ccc;
+      background: #fff;
+      margin-bottom: 8px;
+    }
+    .item-name {
+      font-size: 1em;
+      color: #333;
+      font-weight: bold;
+      text-align: center;
+    }
+    #item-list-area {
+      margin: 12px 0 30px;
+      display: flex;
+      justify-content: center;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem 0;
+      color: #666;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      border-top: 1px solid #ccc;
+    }
+    #header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ccc;
+      flex-shrink: 0;
+    }
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+      min-width: 0;
+    }
+    #header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      white-space: nowrap;
+    }
+    .logo a {
+      color: inherit;
+      text-decoration: none;
+    }
+    @media (max-width: 700px) {
+      .upload-box {
+        min-width: 90vw;
+        min-height: 32vh;
+        font-size: 1.08em;
+      }
+      .guild-ui-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .npc-img-area {
+        margin-left: 10px;
+      }
+      .dialog-window {
+        min-width: 0;
+        max-width: 97vw;
+        padding: 10px 5vw 24px 5vw;
+      }
+      .dialog-window.visible {
+        display: flex;
+      }
+      .upload-fullscreen-area {
+        top: 190px;
+        height: calc(100vh - 190px);
+      }
+      .controls-area {
+        right: 6px;
+        top: 8px;
+      }
+    }
+  </style>
+  <script src="https://unpkg.com/colorthief@2.4.0/dist/color-thief.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <header id="header">
+    <div id="header-left">
+      <h1 class="logo"><a href="index.html"><img src="favicon.ico" /></a></h1>
+      <h1>ファッションの館</h1>
+    </div>
+  </header>
+  <div id="container">
+    <div class="guild-ui-top">
+      <div class="npc-img-area">
+        <img src="images/fashion/NPC.png" alt="エーラ" class="npc-img" />
+      </div>
+      <div class="dialog-window" id="dialog-window">
+        <div class="npc-name">エーラ</div>
+        <div class="speech-box">ファッションの館へようこそ！</div>
+        <button class="next-btn hidden">next</button>
+      </div>
+      <div id="user-img-area" class="hidden">
+        <img id="user-img" src="" alt="あなた" />
+        <button id="exit-btn" onclick="location.reload()">退出</button>
+      </div>
+      <div id="user-dialog-area" class="hidden">
+        <div class="user-name"></div>
+        <div class="speech-box" class="visible"></div>
+      </div>
+    </div>
+    <div id="item-list-area"></div>
+    <div class="upload-fullscreen-area visible" id="upload-fullscreen-area">
+      <div class="upload-box" id="upload-box">
+        キャラ画像をここにドラッグ＆ドロップ<br>または<br />
+        <input type="file" accept="image/*" id="file-input" class="file-input" />
+      </div>
+    </div>
+  </div>
+  <footer id="footer">
+    <small>@2025 RO衣装検索</small>
+    <p>
+      「ラグナロクオンライン」に関連する全ての表現物の権利は以下に帰属します。<br />
+      ©Gravity Co., Ltd. & LeeMyoungJin(studio DTDS) All rights reserved.<br />
+      ©GungHo Online Entertainment, Inc. All Rights Reserved.
+    </p>
+  </footer>
+  <script>
+    // --- 変数初期化 ---
+    const categoryLabels = { 1: "頭上", 2: "衣装", 3: "肩" };
+    let uploadedImage = null, uploadedImageDataURL = null;
+    let palette = [], selectedColorIdx = null;
+    let items = [], colors = [];
+    let pickColorCount = 0;
+
+    // --- データ取得 ---
+    fetch("data.json").then(r => r.json()).then(d => { items = d; });
+    fetch("colors.json").then(r => r.json()).then(d => { colors = d; });
+
+    const forced = (() => {
+      const raw = location.hash.slice(1).split(",");
+      const map = Object.fromEntries(
+        raw.map(part => {
+          const [k, v] = part.split("=");
+          return [k, v ?? true];
+        })
+      );
+      return {
+        get: (key) => map[key],
+        int: (key) => {
+          const val = parseInt(map[key], 10);
+          return isNaN(val) ? undefined : val;
+        },
+        bool: (key) => map[key] === "true" || map[key] === true,
+        raw: map
+      };
+    })();
+    const forcedScore = forced.int("score");
+    const forcedDebug = forced.bool("debug");
+
+    // --- アニメ・演出 ---
+    const cutinImg = new Image();
+    cutinImg.src = "images/fashion/NPC-good.png";
+
+    function showCutinEffect() {
+      const img = document.createElement("img");
+      img.src = cutinImg.src;
+      img.className = "cutin-image";
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 4000);
+    }
+
+    function showRealiscticFirework() {
+      const count = 200, defaults = { origin: { y: 0.7 } };
+      const fire = (ratio, opts) => confetti({ ...defaults, ...opts, particleCount: Math.floor(count * ratio) });
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
+
+    const EMOTION_IDS = {
+      bikkuri: "001",
+      onpu: "003",
+      heart: "004",
+      ase: "006",
+      ahaha: "007",
+      mugon: "011",
+      saikou: "018",
+      kyoro: "019",
+      shock: "020",
+      naku: "025",
+      unun: "030",
+      juru: "032",
+      tere: "035",
+      kyupin: "043",
+      gakkuri: "048",
+      pa: "052",
+    };
+
+    const EMOTION_IMAGES = {};
+    for (const key in EMOTION_IDS) {
+      const img = new Image();
+      img.src = `images/emotions/emotion_icon${EMOTION_IDS[key]}.gif`;
+      EMOTION_IMAGES[key] = img;
+    }
+
+    /**
+     * @param {string} id
+     * @param {Object} [props]
+     */
+    function emotionImg(id, props = {}) {
+      const attr = Object.entries(props).map(([k, v]) => `${k}="${v}"`).join(' ');
+      return `<img ${attr} src="images/emotions/emotion_icon${id}.gif">`;
+    }
+
+    const Emotion = Object.fromEntries(
+      Object.keys(EMOTION_IDS).map(key => [
+        key,
+        (props = {}) => emotionImg(EMOTION_IDS[key], props),
+      ])
+    );
+
+    Emotion.random = function(...arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    };
+
+    function showElement(el) {
+      el.classList.add('visible');
+      el.classList.remove('hidden');
+    }
+    function hideElement(el) {
+      el.classList.add('hidden');
+      el.classList.remove('visible');
+    }
+    
+    /**
+     * @param {string} id
+     * @param {"show"|"hide"} [mode]
+     */
+    function getElement(id, mode) {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      if (mode === "show") showElement(el);
+      else if (mode === "hide") hideElement(el);
+      return el;
+    }
+
+    /**
+     * @param {HTMLElement} parent
+     * @param {string} selector
+     * @param {"show"|"hide"} [mode]
+     * @returns {HTMLElement|null}
+     */
+    function getSubElement(parent, selector, mode) {
+      const el = parent ? parent.querySelector(selector) : null;
+      if (!el) return null;
+      if (mode === "show") showElement(el);
+      else if (mode === "hide") hideElement(el);
+      return el;
+    }
+
+    // --- DOM初期化＆UI制御 ---
+    document.addEventListener("DOMContentLoaded", () => {
+      const npcDialog   = getElement('dialog-window');
+      const npcSpeech   = getSubElement(npcDialog, '.speech-box');
+      const npcNext     = getSubElement(npcDialog, '.next-btn', "hide");
+
+      const userDialog  = getElement('user-dialog-area', "hide");
+      const userSpeech  = getSubElement(userDialog, '.speech-box');
+
+      const userImgArea = getElement("user-img-area", "hide");
+      const userImg     = getElement("user-img", "hide");
+      const exitBtn     = getElement('exit-btn', "hide");
+
+      const uploadArea  = getElement("upload-fullscreen-area", "show");
+      const uploadBox   = getElement("upload-box");
+      const fileInput   = getElement("file-input");
+      const itemListArea= getElement("item-list-area");
+
+      uploadBox.addEventListener("dragover", e => {
+        e.preventDefault();
+        uploadBox.classList.add("dragover");
+      });
+      uploadBox.addEventListener("dragleave", e => {
+        e.preventDefault();
+        uploadBox.classList.remove("dragover");
+      });
+      uploadBox.addEventListener("drop", e => {
+        e.preventDefault();
+        uploadBox.classList.remove("dragover");
+        if (e.dataTransfer.files?.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files?.length) handleFile(fileInput.files[0]);
+      });
+
+      document.addEventListener("click", e => {
+        if (e.target && e.target.classList.contains("next-btn"))
+          hideElement(userDialog);
+      });
+
+      function setUserImage(src) {
+        userImg.src = src;
+        showElement(userImgArea);
+        showElement(userImg);
+      }
+
+      function setNext(func, delay = 0) {
+        const process = () => { npcNext.onclick = func; showElement(npcNext); };
+        if (delay > 0) setTimeout(process, delay); else process();
+      }
+
+      /**
+       * @param {"npc"|"user"} [who]
+       */
+      function showSpeech(who, html) {
+        if (who === "npc") {
+          npcSpeech.innerHTML = html;
+          hideElement(npcNext);
+          showElement(npcDialog);
+          hideElement(userDialog);
+        } else if (who === "user") {
+          userSpeech.innerHTML = html;
+          showElement(userDialog);
+          hideElement(npcDialog);
+        }
+      }
+
+      /**
+       * @param {"npc"|"user"} [who]
+       */
+      function appendSpeech(who, html, delay = 0) {
+        const process = () => {
+          if (who === 'npc') npcSpeech.innerHTML += html;
+          else if (who === 'user') userSpeech.innerHTML += html;
+        };
+        if (delay > 0) setTimeout(process, delay); else process();
+      }
+
+      /**
+       * @param {"npc"|"user"} [who]
+       */
+      function showResponse(who, html, delay = 0) {
+        const doShow = () => {
+          if (who === 'npc') {
+            npcSpeech.innerHTML = html;
+            hideElement(npcNext); showElement(npcDialog); showElement(userDialog);
+          } else if (who === 'user') {
+            userSpeech.innerHTML = html;
+            showElement(userDialog);
+            showElement(npcDialog);
+          }
+        };
+        if (delay > 0) setTimeout(doShow, delay); else doShow();
+      }
+
+      function handleFile(file) {
+        if (!file.type.startsWith("image/")) return alert("画像ファイルを選択してください");
+        const reader = new FileReader();
+        reader.onload = ev => {
+          uploadedImageDataURL = ev.target.result;
+          uploadedImage = new window.Image();
+          uploadedImage.src = ev.target.result;
+          hideElement(uploadArea);
+          setUserImage(ev.target.result);
+
+          uploadedImage.onload = async () => {
+            showSpeech("user", "こんにちは");
+            setTimeout(() => showEeraMessage(file), 800);
+            showElement(exitBtn);
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+
+      const removeExtension = fn => fn.replace(/\.[^/.]+$/, "");
+
+      function showEeraMessage(file) {
+        let nameNoExt = removeExtension(file.name);
+        showSpeech('npc', `あなたのお名前は……<br>
+          <span style="font-size:1.1em; color:#4568a2;">${nameNoExt}</span><br>
+          ……いいお名前ね<br>容姿は……`);
+        showResponse("user", "ドキドキ……", 800);
+        setNext(showFaceMessage, 800);
+      }
+
+      function showFaceMessage() {
+        showSpeech("npc", '可愛いっと。');
+        const emotion = Emotion.random(Emotion.heart, Emotion.juru, Emotion.tere, Emotion.ahaha);
+        showResponse("user", emotion({height: 100}), 800);
+        setNext(stepColorAnalyze, 800);
+      }
+
+      function stepColorAnalyze() {
+        showResponse('npc', 'それではファッションチェック！<br>いきますよぉー');
+        showResponse("user", "ワクワク……", 1000);
+        setNext(showColorScore, 1000);
+      }
+
+      function stepPalette() {
+        showResponse('npc', 'それでは商品をご提案しますね<br>お好みの色を選択して下さい。<div id="palette-row"></div>');
+        drawPalette();
+        drawColorWheelWithPalette(palette);
+      }
+
+      function rgb2hsv([r, g, b]) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, v = max, d = max - min;
+        s = max === 0 ? 0 : d / max;
+        if (max === min) h = 0;
+        else switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6; h *= 360;
+        return [h, s, v];
+      }
+
+      function stddev(arr) {
+        const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+        return Math.sqrt(arr.reduce((a, b) => a + (b - avg) ** 2, 0) / arr.length);
+      }
+
+      
+function evaluateCoordination(rgbs) {
+  const hsvs = rgbs.map(rgbToHsv);
+  const hues = hsvs.map(h => h[0]);
+  const sats = hsvs.map(h => h[1]);
+  const vals = hsvs.map(h => h[2]);
+
+  const hueSpanValue = hueSpan(hues);
+  const hueRangeScore = Math.max(0, Math.min(1, 1 - hueSpanValue / 180));
+const hueComment = (() => {
+  if (hueRangeScore > 0.85) {
+    return pick([
+      "色がきれいに揃っていて、とても上品な配色です！",
+      "まとまりがよく、視線が自然に集まる配色になっています！"
+    ]);
+  } else if (hueRangeScore > 0.6) {
+    return pick([
+      "広がりがあり、全体的に落ち着いています。",
+      "色の幅を感じる構成で、自然なまとまりが表れています。"
+    ]);
+  } else {
+    return pick([
+      "たくさんの色が含まれていて、明るく華やかな印象になっています。",
+      "カラフルな色使いが楽しく、自由な組み合わせが魅力になっていますね。"
+    ]);
+  }
+})();
+
+  
+  const hueContrastScore = computeComplementaryScore(hues, sats);
+const contrastComment = (() => {
+  if (hueContrastScore > 0.75) {
+    return pick([
+      "補色のコントラストがしっかり効いていて、とても印象的な配色です！",
+      "真逆の色同士がバランスよく使われていて、目を引く組み合わせになっています！"
+    ]);
+  } else if (hueContrastScore > 0.4) {
+    return pick([
+      "色の違いが自然なアクセントになっていて、調和のある印象です。",
+      "対比を感じる構成で、品のある華やかさが出ていますね。"
+    ]);
+  } else {
+    return pick([
+      "全体のトーンが近く、穏やかで落ち着いた雰囲気にまとまっていますね。",
+      "やさしい色合いが多く、なめらかな仕上がりになっています。"
+    ]);
+  }
+})();
+
+  
+  const satMean = sats.reduce((a, b) => a + b, 0) / sats.length;
+  const satStd = stddev(sats);
+  const saturationScore = Math.max(0, Math.min(1, (1 - satStd) * satMean));
+const satComment = (() => {
+  if (saturationScore > 0.7) {
+    return pick([
+      "彩度が整っていて、とても上品でまとまりのある配色です！",
+      "鮮やかさに統一感があり、洗練された印象になっています！"
+    ]);
+  } else if (saturationScore > 0.4) {
+    return pick([
+      "彩度の変化が柔らかな動きを生み出していて、自然な魅力があります。",
+      "明るさや彩度の揺らぎがコーデ全体にやさしい表情を与えていますね。"
+    ]);
+  } else {
+    return pick([
+      "彩度の差によって深みのある印象が生まれています。",
+      "落ち着いた色と明るい色が共存していて、奥行きのある配色です。"
+    ]);
+  }
+})();
+
+  
+  const valMax = Math.max(...vals);
+  const valMin = Math.min(...vals);
+  const valRange = valMax - valMin;
+  const valCentrality = 1 - Math.abs((valMax + valMin) / 2 - 0.5);
+  const valStd = stddev(vals);
+  const valueScore = Math.max(0, Math.min(1, valRange * valCentrality * (1 - valStd)));
+const valComment = (() => {
+  if (valueScore > 0.7) {
+    return pick([
+      "明るさのバランスがとても良く、全体がすっきり整った印象です！",
+      "明度の使い方がとても自然で、きれいにまとまっています！"
+    ]);
+  } else if (valueScore > 0.4) {
+    return pick([
+      "明度の変化がなめらかで、やわらかい雰囲気が出ていますね。",
+      "明るさに広がりがあり、立体感のある仕上がりになっています。"
+    ]);
+  } else {
+    return pick([
+      "明るさのコントラストがはっきりしていて、印象に残る配色です。",
+      "明暗の差がアクセントになっていて、視線の流れが生まれやすい構成です。"
+    ]);
+  }
+})();
+
+  
+  const allScores = [
+    { name: "色相のまとまり", score: hueRangeScore, comment: hueComment },
+    { name: "色相のコントラスト", score: hueContrastScore, comment: contrastComment },
+    { name: "彩度の統一感", score: saturationScore, comment: satComment },
+    { name: "明度バランス", score: valueScore, comment: valComment }
+  ];
+
+  const best = allScores.reduce((a, b) => (a.score > b.score ? a : b));
+  const additionalComments = allScores
+    .filter(e => e !== best && e.score > 0.4)
+    .sort((a, b) => b.score - a.score)
+    .map(e => e.comment);
+  const comment = [best.comment, ...additionalComments].join(" ");
+
+  return {
+    score: Math.round(best.score * 100),
+    by: best.name,
+    comment,
+    all: allScores,
+    best
+  };
+
+  function computeComplementaryScore(hues, sats) {
+    const pairs = [];
+    for (let i = 0; i < hues.length; i++) {
+      for (let j = i + 1; j < hues.length; j++) {
+        let diff = Math.abs(hues[i] - hues[j]);
+        if (diff > 180) diff = 360 - diff;
+        pairs.push(diff);
+      }
+    }
+    const complementPairs = pairs.filter(d => d >= 150 && d <= 210);
+    const complementRatio = complementPairs.length / pairs.length;
+    const satMean = sats.reduce((a, b) => a + b, 0) / sats.length;
+    return Math.min(1, complementRatio * 2) * satMean * 0.9;
+  }
+
+  function rgbToHsv([r, g, b]) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+      if (h < 0) h += 360;
+    }
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+    return [h, s, v];
+  }
+
+  function stddev(arr) {
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+    const variance = arr.reduce((a, b) => a + (b - mean) ** 2, 0) / arr.length;
+    return Math.sqrt(variance);
+  }
+
+  function hueSpan(hues) {
+    const sorted = hues.slice().sort((a, b) => a - b);
+    let maxGap = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      const current = sorted[i];
+      const next = sorted[(i + 1) % sorted.length];
+      const gap = (next - current + 360) % 360;
+      if (gap > maxGap) maxGap = gap;
+    }
+    return 360 - maxGap;
+  }
+
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+}
+
+      function generateCoordinationExplain(rgbs) {
+  const hsvs = rgbs.map(rgbToHsv);
+  const hues = hsvs.map(h => h[0]);
+  const sats = hsvs.map(h => h[1]);
+  const vals = hsvs.map(h => h[2]);
+
+  const roundedHues = hues.map(h => Math.round(h));
+  const hueMin = Math.min(...hues);
+  const hueMax = Math.max(...hues);
+  const hueRange = hueMax - hueMin > 180 ? 360 - (hueMax - hueMin) : hueMax - hueMin;
+  const huePoints = hues.map(h => (Math.round(h / 30) * 30) % 360);
+  const uniqueSectors = [...new Set(huePoints)].length;
+  const [mainHue, mainS, mainV] = rgbToHsv(rgbs[0]); // 代表色
+  const baseColor = hueToName(mainHue, mainS, mainV);
+
+  const sDesc = sats.map(s => (s < 0.25 ? "低" : s < 0.65 ? "中" : "高"));
+  const vDesc = vals.map(v => (v < 0.5 ? "暗" : "明"));
+
+  return `
+    <div style="font-size:0.97em; color:#357; margin-top:8px; background:#f7f9fc; border-radius:6px; padding:6px;">
+      主な色相値：[${roundedHues.join(", ")}]度<br>
+      色相の幅（最大-最小）：${hueRange.toFixed(1)}度<br>
+      色相の分布数：${uniqueSectors} 箇所<br>
+      配色ベース：${baseColor}<br>
+      彩度：${sDesc.join(", ")} ／ 明度：${vDesc.join(", ")}<br>
+    </div>
+  `;
+
+  function rgbToHsv([r, g, b]) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+      if (h < 0) h += 360;
+    }
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+    return [h, s, v];
+  }
+
+  function hueToName(h, s = 1, v = 1) {
+    if (s < 0.05) return "モノトーン";
+    if (s < 0.35 && v > 0.55) return "ベージュ系";
+    if (s < 0.25 && v <= 0.7) return "アースカラー系";
+
+    const sectors = [
+      "レッド系", "オレンジ系", "イエロー系", "ライム系", "グリーン系",
+      "シアン系", "ブルー系", "パープル系", "マゼンタ系", "ピンク系", "コーラル系", "レッド系"
+    ];
+    return sectors[Math.round(h / 30) % 12];
+  }
+  
+}
+
+function generateSymbolicPoemHtml(rgbList, evaluation) {
+  const hsvList = rgbList.map(rgbToHsv);
+  const hues = hsvList.map(h => h[0]);
+  const sats = hsvList.map(h => h[1]);
+  const vals = hsvList.map(h => h[2]);
+  const avgHue = average(hues);
+  const avgSat = average(sats);
+  const avgVal = average(vals);
+  const hueGroups = hues.map(h => Math.round(h / 30) % 12);
+  const uniqueHueCount = new Set(hueGroups).size;
+  const colorName = hueKanjiName(avgHue, avgSat, avgVal);
+  const starType = pickStarName(avgHue, avgSat, avgVal, colorName);
+
+  const maxScore = evaluation.best.score;
+  const rare2 = maxScore >= 0.95;
+  const rare1 = !rare2 && maxScore >= 0.85;
+
+  const brillianceKey = describeBrillianceKey(avgHue, avgSat, avgVal, rare1, rare2);
+  const brilliance = brillianceKeyToPhrase(brillianceKey);
+  const multiplicity = describeMultiplicity(uniqueHueCount);
+  const ending1 = endingPhrase1(starType, avgHue, avgSat, avgVal, rare1, rare2);
+  const ending2 = endingPhrase2(brillianceKey, avgHue, avgSat, avgVal, uniqueHueCount);
+  const line1 = `${colorName}の${starType}${ending1}`;
+  const line2 = `${brilliance}${ending2}${multiplicity}`;
+  return `${line1}<br>${line2}`;
+
+  function rgbToHsv([r, g, b]) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+      if (h < 0) h += 360;
+    }
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+    return [h, s, v];
+  }
+
+  function average(arr) {
+    return arr.reduce((a, b) => a + b, 0) / arr.length;
+  }
+
+function hueKanjiName(h, s, v) {
+  if (s < 0.03) return "墨";
+  if (s < 0.12 && v > 0.7) return "霞";
+  if (s < 0.12) return "土";
+  const sectors = [
+    "紅", "橙", "金", "萌", "翠", "青", "藍", "紫", "桜", "桃", "朱", "焦",
+    "銀", "灰", "漆", "碧", "紺", "琥", "瑠", "翡翠", "赭", "柿", "煤", "朽", "琅"
+  ];
+  return sectors[Math.round(h / 15) % sectors.length];
+}
+
+  function pickStarName(h, s, v, avoidName = "") {
+    const defs = [
+      { name: "煌星",  h: [40, 70], s: [0.5, 1], v: [0.7, 1] },      // 金
+      { name: "蒼星",  h: [180, 250], s: [0.4, 1], v: [0.4, 1] },    // 青
+      { name: "鈍星",  s: [0, 0.3], v: [0.2, 0.7] },                 // くすみ
+      { name: "影星",  h: [200, 260], s: [0, 0.3], v: [0, 0.3] },    // 藍暗
+      { name: "幻星",  h: [270, 330], s: [0.2, 0.7], v: [0.3, 0.8] },// 紫
+      { name: "孤星",  s: [0, 0.15], v: [0.2, 0.5] },                // 灰
+      { name: "流星",  h: [0, 360], s: [0.5, 1], v: [0.6, 1] },      // 鮮やか
+      { name: "雷星",  h: [45, 90], s: [0.7, 1], v: [0.7, 1] },      // 黄緑
+      { name: "冥星",  h: [220, 270], s: [0, 0.3], v: [0, 0.25] },   // 紺黒
+      { name: "朧星",  h: [300, 360], s: [0, 0.3], v: [0.2, 0.6] },  // くすみ紫
+      { name: "鳴星",  h: [0, 40], s: [0.6, 1], v: [0.6, 1] },       // 赤
+      { name: "陽星",  h: [20, 55], s: [0.7, 1], v: [0.7, 1] },      // オレンジ
+      { name: "霧星",  h: [100, 170], s: [0, 0.4], v: [0.3, 0.8] },  // 緑くすみ
+      { name: "凍星",  h: [160, 200], s: [0, 0.3], v: [0.3, 0.8] },  // 水色
+      { name: "霞星",  s: [0, 0.18], v: [0.65, 1] },                 // 明灰
+      { name: "夢星",  h: [260, 330], s: [0.4, 1], v: [0.65, 1] },   // 桃紫
+      { name: "宵星",  h: [240, 290], s: [0.3, 0.8], v: [0.4, 0.9] },// 青紫
+      { name: "暁星",  h: [10, 35], s: [0.3, 1], v: [0.65, 1] },     // 橙
+      { name: "燐星",  h: [80, 170], s: [0.4, 1], v: [0.4, 1] },     // 緑
+      { name: "蝕星",  s: [0, 0.2], v: [0, 0.2] },                   // 無彩暗
+      { name: "裂星",  s: [0.7, 1], v: [0.7, 1] }                    // 極彩
+    ];
+    function inRange(val, min, max) {
+      return (min === undefined || val >= min) && (max === undefined || val <= max);
+    }
+    return (
+      defs.find(d =>
+        (!avoidName.includes(d.name[0])) &&
+        inRange(h, d.h?.[0], d.h?.[1]) &&
+        inRange(s, d.s?.[0], d.s?.[1]) &&
+        inRange(v, d.v?.[0], d.v?.[1])
+      )?.name || "星影"
+    );
+  }
+
+  function describeBrillianceKey(h, s, v, rare1, rare2) {
+    if (rare2) {
+      if (v > 0.85) return "myth_flash";
+      if (v > 0.65) return "unique_radiance";
+      if (v > 0.4) return "world_light";
+      if (v > 0.2) return "deep_mystery";
+      return "eternal_peace";
+    } else if (rare1) {
+      if (v > 0.85) return "legend_flash";
+      if (v > 0.65) return "miracle_radiance";
+      if (v > 0.4) return "soft_light";
+      if (v > 0.2) return "mystic";
+      return "abyss";
+    } else {
+      if (v > 0.9) return ["flash", "first_star", "aurora", "光芒", "輝閃", "一閃", "暁光", "烈光", "明星", "煌光"][(Math.floor(h / 36))];
+      if (v > 0.65) return ["bright", "朝陽", "陽彩", "爽風", "瑞光", "春光", "光彩", "晴光", "春風", "彩光"][(Math.floor(h / 36))];
+      if (v > 0.4) return ["soft", "微光", "淡彩", "ほの光", "春霞", "霞光", "淡影", "薄光", "和光", "緑影"][(Math.floor(h / 36))];
+      if (v > 0.2) return ["mysterious", "幽光", "闇彩", "夢影", "蒼影", "幻影", "影光", "星影", "幻彩", "月影"][(Math.floor(h / 36))];
+      return ["quiet", "微睡", "静寂", "余韻", "残光", "夜影", "深闇", "沈光", "微闇", "静影"][(Math.floor(h / 36))];
+    }
+  }
+
+  function brillianceKeyToPhrase(key) {
+    const phrases = {
+      myth_flash: "神話の閃光として",
+      unique_radiance: "唯一無二の輝きで",
+      world_light: "世界を包む光で",
+      deep_mystery: "深奥の神秘として",
+      eternal_peace: "永劫に静まる",
+      legend_flash: "伝説の閃光のごとく",
+      miracle_radiance: "眩い奇跡の輝きで",
+      soft_light: "柔らかな光で包むように",
+      mystic: "神秘に満ちて",
+      abyss: "深淵に静まる",
+      flash: "閃光のように",
+      first_star: "一番星のように",
+      aurora: "オーロラのように",
+      光芒: "光芒のように",
+      輝閃: "輝閃のごとく",
+      一閃: "一閃のごとく",
+      暁光: "暁光のように",
+      烈光: "烈光のごとく",
+      明星: "明星のように",
+      煌光: "煌光のごとく",
+      bright: "明るく",
+      朝陽: "朝陽のように",
+      陽彩: "陽彩のように",
+      爽風: "爽風のように",
+      瑞光: "瑞光のように",
+      春光: "春光のように",
+      光彩: "光彩のように",
+      晴光: "晴光のように",
+      春風: "春風のように",
+      彩光: "彩光のように",
+      soft: "やわらかく",
+      微光: "微光のように",
+      淡彩: "淡彩のように",
+      ほの光: "ほの光のように",
+      春霞: "春霞のように",
+      霞光: "霞光のように",
+      淡影: "淡影のように",
+      薄光: "薄光のように",
+      和光: "和光のように",
+      緑影: "緑影のように",
+      mysterious: "妖しく",
+      幽光: "幽光のように",
+      闇彩: "闇彩のように",
+      夢影: "夢影のように",
+      蒼影: "蒼影のように",
+      幻影: "幻影のように",
+      影光: "影光のように",
+      星影: "星影のように",
+      幻彩: "幻彩のように",
+      月影: "月影のように",
+      quiet: "ひっそりと",
+      微睡: "微睡のように",
+      静寂: "静寂のように",
+      余韻: "余韻のように",
+      残光: "残光のように",
+      夜影: "夜影のように",
+      深闇: "深闇のように",
+      沈光: "沈光のように",
+      微闇: "微闇のように",
+      静影: "静影のように"
+    };
+    return phrases[key] || "";
+  }
+
+  function describeMultiplicity(n) {
+    const list = [
+      "ソロ", "デュオ", "トリオ", "カルテット", "クインテット",
+      "セクステット", "セプテット", "オクテット", "ノネット", "デケット",
+      "十一星", "十二宮", "双極星", "星団", "星合", "星乱"
+    ];
+    return list[Math.min(n - 1, list.length - 1)];
+  }
+
+  function endingPhrase1(star, h, s, v, rare1, rare2) {
+    if (rare2) {
+      const endings = {
+        "影星": "が深淵の闇を超越する", "鈍星": "が純白の霧へ昇華する", "蒼星": "が天空の極に瞬く",
+        "煌星": "が銀河の果てを切り裂く", "幻星": "が永劫の夢を紡ぐ", "流星": "が奇跡の歴史を描く",
+        "孤星": "が孤高の静寂を照らす", "雷星": "が世界の時空を震わす", "冥星": "が宇宙の深奥を照らす",
+        "朧星": "が幻想の霞へ消える", "鳴星": "が宇宙に調べを響かせる", "陽星": "が光の矢を射る",
+        "霧星": "が神域の星霧を越える", "凍星": "が氷壁を打ち砕く", "夢星": "が永遠の心象に降り注ぐ",
+        "宵星": "が悠久の宵を駆け抜ける", "暁星": "が新しき黎明を開く", "燐星": "が魂の旅路を導く",
+        "蝕星": "が時の理を喰らう", "裂星": "が虚空の境界を断ち切る"
+      };
+      return endings[star] || "が神話を刻む";
+    }
+    if (rare1) {
+      const endings = {
+        "影星": "が新世界の闇を切り拓く", "鈍星": "が無垢な霧に溶ける", "蒼星": "が蒼天を極めて瞬く",
+        "煌星": "が銀河を裂く", "幻星": "が幻の夢を映す", "流星": "が奇跡の軌跡を描く",
+        "孤星": "が静寂の頂に浮かぶ", "雷星": "が時空を貫く", "冥星": "が深淵の果てを照らす",
+        "朧星": "が幻想の霞に溶ける", "鳴星": "が宇宙に響き渡る", "陽星": "が光芒を射る",
+        "霧星": "が星霧を越えて進む", "凍星": "が氷雪を砕く", "夢星": "が永遠の心象に降る",
+        "宵星": "が悠久の宵を駆ける", "暁星": "が黎明を開く", "燐星": "が魂を照らし導く",
+        "蝕星": "が時の輪を喰らう", "裂星": "が虚空の境界を割く"
+      };
+      return endings[star] || "が時空を超えて流れる";
+    }
+    const endings = {
+      "影星": "が闇を彷徨う", "鈍星": "が霧に沈む", "蒼星": "が空に瞬く", "煌星": "が夜を裂く",
+      "幻星": "が夢に滲む", "流星": "が軌跡を描く", "孤星": "が静寂に浮かぶ", "雷星": "が時を裂く",
+      "冥星": "が深淵を照らす", "朧星": "が霞に溶ける", "鳴星": "が夜空に響く", "陽星": "が天を射る",
+      "霧星": "が星霧を抜ける", "凍星": "が氷塊を貫く", "夢星": "が心象に降る", "宵星": "が宵を駆ける",
+      "暁星": "が夜明けを告げる", "燐星": "が魂を導く", "蝕星": "が時を喰らう", "裂星": "が虚空を割く"
+    };
+    return endings[star] || "が夜空に流れる";
+  }
+
+  function endingPhrase2(brillianceKey, h, s, v, uniqueHueCount) {
+    const tail = {
+      myth_flash: ["世界の創世を告げる", "神話の舞台を照らす", "永遠の命を刻む", "新たな歴史を導く", "宇宙の鼓動となる", "奇跡を起こす", "神々に捧ぐ", "記憶を紡ぐ", "星々を導く", "未来を照らす"],
+      unique_radiance: ["選ばれし者に捧ぐ", "伝承を呼ぶ", "天命を示す", "奇跡を創る", "遥かな未来へ響く", "時空を貫く", "物語を綴る", "伝説を宿す", "道を示す", "約束を果たす"],
+      world_light: ["星々を結ぶ", "希望を紡ぐ", "大地を抱く", "夢を照らす", "平和を祈る", "光を巡らす", "未来を彩る", "心を癒す", "時を包む", "優しさを注ぐ"],
+      deep_mystery: ["神秘の扉を開く", "封印を解く", "魂を揺らす", "深層を映す", "神々に届く", "謎を秘める", "奇跡を育む", "静寂を守る", "無限を抱く", "運命を変える"],
+      eternal_peace: ["沈黙の聖域で眠る", "悠久に佇む", "終焉を見届ける", "時空に溶ける", "永遠に息づく", "静寂に沈む", "安らぎを保つ", "想いを残す", "夢の中へ", "夜を超える"],
+      legend_flash: ["伝承に刻まれる", "運命を照らす", "永劫に煌めく", "天命を告げる", "時空を繋ぐ", "真実を語る", "希望を灯す", "奇跡を呼ぶ", "空を飾る", "風を誘う"],
+      miracle_radiance: ["祝福の夜を満たす", "希望を呼ぶ", "星界を渡る", "時を導く", "輝きの奇跡", "命を結ぶ", "願いを叶える", "未来を予感させる", "心を照らす", "愛を伝える"],
+      soft_light: ["慈愛に満ちる", "優しさを運ぶ", "希望を灯す", "心を包む", "未来を染める", "平和を抱く", "感謝を伝える", "静けさを分かつ", "笑顔を招く", "ぬくもりを添える"],
+      mystic: ["永遠を紡ぐ", "神々の息吹", "奇跡を隠す", "幻想を呼ぶ", "記憶に残る", "謎を隠す", "予感を運ぶ", "夢を照らす", "想いを包む", "神秘を秘める"],
+      abyss: ["終焉を見守る", "静けさの底で光る", "悠久に眠る", "永遠に沈む", "沈黙に咲く", "時を超える", "暗闇を照らす", "孤独を癒す", "夜明けを待つ", "希望を繋ぐ"],
+      flash: ["白昼に燃える", "瞬時に光る", "爆ぜる", "深層を照らす", "断片を貫く", "空を切る", "刹那に輝く", "時を裂く", "鼓動を打つ", "きらめく"],
+      first_star: ["朝を告げる", "空を染める", "夜に輝く", "願いを運ぶ", "道しるべとなる", "静寂を導く", "孤高に光る", "夢を示す", "未来を照らす", "希望を宿す"],
+      aurora: ["空を舞う", "彩りを描く", "奇跡を演じる", "夜空を踊る", "幻想を纏う", "光を織り成す", "風に揺れる", "輝きを散らす", "調和を生む", "世界を包む"],
+      bright: ["月夜に輝く", "空を照らす", "朝露に映る", "黎明に瞬く", "光の海に響く", "新しい日を迎える", "春の息吹を感じる", "希望を示す", "晴れやかに照らす", "清らかに輝く"],
+      soft: ["星霧に浮かぶ", "静かに光る", "柔風に溶ける", "余白を満たす", "光輪に包まれる", "和らぎを運ぶ", "優雅に舞う", "しなやかに光る", "穏やかに包む", "穏やかさを纏う"],
+      mysterious: ["鏡の中で踊る", "夢の奥で滲む", "歪な空間に溶ける", "記憶に囁く", "呪文のようにきらめく", "秘めやかに語る", "謎を隠す", "心奥を揺らす", "密やかに灯る", "夜の帳に漂う"],
+      quiet: ["影の奥で光る", "静かに揺らめく", "夜陰に沈む", "沈黙の果てに佇む", "虚空に咲く", "静寂をまとい", "そっと寄り添う", "眠りにつく", "穏やかに静まる", "音もなく灯る"]
+    };
+    const arr = tail[brillianceKey] || ["輝く"];
+    const i = (Math.floor((h + s * 360 + v * 360 + uniqueHueCount * 31)) % arr.length);
+    return arr[i] + " ";
+  }
+}
+
+
+      function showColorScore() {
+        try {
+          const colorThief = new ColorThief();
+          const main = colorThief.getColor(uploadedImage);
+          const pal = colorThief.getPalette(uploadedImage, 6);
+          const rgbs = [main, ...pal.filter((c, i) => i === 0 || !(c[0] === main[0] && c[1] === main[1] && c[2] === main[2]))];
+
+          let coodinated = evaluateCoordination(rgbs);
+          let explainHtml = generateCoordinationExplain(rgbs);
+          let score = coodinated.score;
+          comment = coodinated.comment;
+
+          let poem = generateSymbolicPoemHtml(rgbs, coodinated);
+          let poemHtml = `あなたのファッションを例えるなら……<div class="poem">${poem}</div>`;
+
+          if (forcedDebug) {
+            console.log("RGBs:", JSON.stringify(rgbs));
+            console.log(`${coodinated.by}: ${score}`);
+            coodinated.all.forEach(i => {
+              console.log(JSON.stringify(i));
+            });
+            console.log(coodinated);
+            console.log(explainHtml);
+          }
+          if (forcedScore) score = forcedScore;
+
+          const color = score >= 90 ? '#e38d13' : score >= 75 ? '#47a' : '#888';
+          const fontSize = score >= 95 ? '1.3em' : score >= 75 ? '1.2em' : '1.1em';
+          const rank = score >= 95 ? 'ランク：SSS' : score >= 90 ? 'ランク：S' : '';
+          const lastWord = score >= 95 ? 'あなたこそ真のオシャレさんです！' : score >= 90 ? 'とってもバランスが良いですね！' : score >= 75 ? 'とても良い組み合わせですね' : score >= 60 ? '落ち着いたまとまりのある配色です。' : score >= 50 ? 'ワントーンのシンプルな配色ですね。' : '';
+
+          const message = `${comment}<br><br>${poemHtml}<br>お召し物の色合いは……<span style="font-size:${fontSize};color:${color};">${score}点！</span>${rank}<br>${lastWord}`;
+
+          const EMOTION_SCORE_RULES = [
+            { min: 95, emotion: [Emotion.kyupin] },
+            { min: 90, emotion: [Emotion.saikou] },
+            { min: 75, emotion: [Emotion.ahaha, Emotion.juru] },
+            { min: 60, emotion: [Emotion.tere, Emotion.onpu] },
+            { min: 50, emotion: [Emotion.kyoro, Emotion.unun] },
+            { min: 30, emotion: [Emotion.naku, Emotion.mugon, Emotion.ase] },
+            { min: 0,  emotion: [Emotion.shock, Emotion.gakkuri] },
+          ];
+
+          function emotionByScore(score, props = {}) {
+            for (const rule of EMOTION_SCORE_RULES) {
+              if (score >= rule.min) {
+                return Emotion.random(...rule.emotion)(props);
+              }
+            }
+            return "";
+          }
+          const userMessage = emotionByScore(score, {height: 100});
+
+          if (score >= 90) showCutinEffect();
+          if (score >= 95) showRealiscticFirework();
+
+          showSpeech('npc', `
+            ${message}
+            <div id="palette-row"></div>
+            <canvas id="color-wheel" width="100" height="100"></canvas>
+          `);
+
+          showResponse("user", userMessage, 300);
+
+          setNext(() => {
+            palette = rgbs;
+            selectedColorIdx = null;
+            stepPalette();
+          });
+          drawColorWheelWithPalette(rgbs);
+        } catch (e) {
+          console.error("Error in showColorScore", e);
+          showSpeech("npc", `
+            お召し物の色合いは……採点できませんでした<br>
+            ${e}
+          `);
+          showResponse("user", Emotion.shock(), 300);
+        }
+      }
+
+      function rgb2hex(rgb) {
+        return "#" + rgb.map(x => (x < 16 ? "0" : "") + x.toString(16)).join("");
+      }
+      function drawPalette() {
+        let paletteHtml = '<div class="palette-row">';
+        palette.forEach((col, i) =>
+          paletteHtml += `
+            <div class="palette-color${selectedColorIdx === i ? " selected" : ""}" data-idx="${i}" title="${rgb2hex(col)}">
+              <span class="color-dot" style="background:${rgb2hex(col)}"></span>
+            </div>
+          `
+        );
+        paletteHtml += "</div>";
+        document.getElementById("palette-row").innerHTML = paletteHtml;
+        document.querySelectorAll(".palette-color").forEach(e => {
+          e.onclick = () => {
+            selectedColorIdx = Number(e.dataset.idx);
+            document.querySelectorAll(".palette-color").forEach(e2 => e2.classList.remove("selected"));
+            e.classList.add("selected");
+            showItemsForSelectedColor();
+          };
+        });
+      }
+      function drawColorWheelWithPalette(palette) {
+        const canvas = document.getElementById("color-wheel");
+        if (!canvas || !palette || palette.length === 0) return;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const radius = 48, cx = 50, cy = 50;
+        for (let a = 0; a < 360; a += 2) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radius, ((a - 1) * Math.PI) / 180, (a * Math.PI) / 180, false);
+          ctx.closePath();
+          ctx.fillStyle = `hsl(${a},90%,60%)`;
+          ctx.fill();
+        }
+        palette.forEach(rgb => {
+          const [h] = rgb2hsv(rgb);
+          const rad = ((h - 90) * Math.PI) / 180;
+          const px = cx + Math.cos(rad) * radius * 0.85;
+          const py = cy + Math.sin(rad) * radius * 0.85;
+          ctx.beginPath();
+          ctx.arc(px, py, 8, 0, 2 * Math.PI, false);
+          ctx.fillStyle = rgb2hex(rgb);
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+      function colorDist(a, b) {
+        return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+      }
+
+const pickColorMessages = [
+  "やっぱりこれ！","この色もいいな","とみせかけて","この色かな","これ、実は好き","気分を変えて","なんか落ち着く色","これ！","からの","迷うけど"
+];
+
+function getPickColorMessage(count) {
+  if (count === 1 || Math.random() < 0.77) return "この色が気になります！";
+  return pickColorMessages[Math.floor(Math.random() * pickColorMessages.length)];
+}
+
+function showUserSelectedColor(color) {
+  pickColorCount += 1;
+  const message = getPickColorMessage(pickColorCount);
+  showResponse(
+    "user",
+    `${message}<span style="display:inline-block;width:1.2em;height:1.2em;
+    border-radius:50%;background:${rgb2hex(color)};
+    margin-left:0.5em;vertical-align:middle;border:1.5px solid #ccc;"></span>`
+  );
+  exitBtn.classList.add('hover');
+}
+
+function renderItemListForColor(selColor) {
+  const itemsWithColor = items
+    .map(item => {
+      const colorInfo = colors.find(c => c.i === item.i);
+      return { ...item, color: colorInfo ? colorInfo.rgb : null };
+    })
+    .filter(item => item.color);
+  const result = [];
+  [1, 2, 3].forEach(cat => {
+    const catItems = itemsWithColor.filter(item => item.c === cat);
+    if (catItems.length) {
+      const sorted = catItems
+        .map(item => ({ item, dist: colorDist(item.color, selColor) }))
+        .sort((a, b) => a.dist - b.dist);
+      const pick = sorted.slice(0, 5);
+      const weights = pick.map(a => 1 / (a.dist + 1e-4));
+      const sum = weights.reduce((a, b) => a + b, 0);
+      const rnd = Math.random() * sum;
+      let acc = 0, idx = 0;
+      for (; idx < weights.length; idx++) {
+        acc += weights[idx];
+        if (rnd <= acc) break;
+      }
+      const chosen = pick[idx].item;
+      result.push({ category: cat, ...chosen });
+    }
+  });
+  const resHtml = result
+    .map(
+      r => `
+        <div class="item-col">
+          <img src="https://rotool.gungho.jp/images/item_icon/${encodeURIComponent(r.i)}.png" class="big-item-icon" />
+          <div class="item-name">${r.n || r.id}</div>
+        </div>
+      `
+    )
+    .join("");
+  itemListArea.innerHTML = `
+    <div class="item-list-row">
+      ${resHtml || '<div style="color:#4568a2;">該当アイテムが見つかりませんでした。</div>'}
+    </div>
+  `;
+  drawPalette();
+}
+
+function showItemsForSelectedColor() {
+  if (selectedColorIdx === null) {
+    itemListArea.innerHTML = "";
+    return;
+  }
+  const selColor = palette[selectedColorIdx];
+  showUserSelectedColor(selColor);
+  renderItemListForColor(selColor);
+}
+      
+
+    }); // DOMContentLoaded
+  </script>
+</body>
+</html>
